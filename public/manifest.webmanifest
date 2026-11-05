@@ -1,0 +1,19 @@
+{
+  "name": "Zetamac Speed Trainer",
+  "short_name": "Zetamac",
+  "description": "High-velocity arithmetic speed trainer for mobile (Goal: ≥45 in 120s)",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
