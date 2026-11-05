@@ -1,6 +1,17 @@
-const CACHE_NAME = 'zetamac-v1';
+const CACHE_NAME = 'zetamac-v2';
+
+const PRECACHE_URLS = [
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './favicon.svg',
+  './icon.svg'
+];
 
 self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
+  );
   self.skipWaiting();
 });
 
@@ -23,15 +34,33 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    caches.open(CACHE_NAME).then((cache) =>
-      fetch(event.request)
-        .then((response) => {
-          if (response.status === 200) {
-            cache.put(event.request, response.clone());
+    caches.match(event.request).then((cached) => {
+      if (cached) {
+        // Stale-while-revalidate
+        fetch(event.request)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              const clone = networkResponse.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+            }
+          })
+          .catch(() => {});
+        return cached;
+      }
+
+      return fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
           }
-          return response;
+          return networkResponse;
         })
-        .catch(() => cache.match(event.request))
-    )
+        .catch(() => {
+          if (event.request.mode === 'navigate') {
+            return caches.match('./index.html') || caches.match('./');
+          }
+        });
+    })
   );
 });
